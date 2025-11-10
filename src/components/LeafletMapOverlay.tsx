@@ -98,36 +98,73 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
       const cityIcon = (cityName: string) => {
         const emoji = getCityIcon(cityName)
         const isHolyCity = cityName === "Mecca" || cityName === "Medina"
-        const glowColor = isHolyCity ? 'rgba(255, 215, 0, 0.9)' : 'rgba(100, 200, 255, 0.7)'
         
         return L.divIcon({
           className: 'custom-city-icon',
           html: `
             <div style="
-              font-size: 36px;
-              text-shadow: 
-                0 0 20px ${glowColor},
-                0 0 40px ${glowColor},
-                0 2px 12px rgba(0,0,0,0.6);
-              filter: 
-                drop-shadow(0 4px 8px rgba(0,0,0,0.4))
-                drop-shadow(0 0 15px ${glowColor});
-              animation: pulse 2s ease-in-out infinite;
+              position: relative;
+              width: 56px;
+              height: 56px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             ">
-              ${emoji}
+              <!-- Outer golden ring -->
+              <div style="
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: ${isHolyCity ? 'linear-gradient(135deg, #FFD700, #D4AF37, #FFD700)' : 'linear-gradient(135deg, #8B6914, #D4AF37)'};
+                border-radius: 50%;
+                box-shadow: 
+                  0 0 20px rgba(212, 175, 55, 0.8),
+                  0 4px 12px rgba(0, 0, 0, 0.6),
+                  inset 0 2px 8px rgba(255, 255, 255, 0.4),
+                  inset 0 -2px 8px rgba(0, 0, 0, 0.4);
+                animation: iconPulse 2s ease-in-out infinite;
+              "></div>
+              
+              <!-- Inner background -->
+              <div style="
+                position: absolute;
+                width: 44px;
+                height: 44px;
+                background: ${isHolyCity ? 'linear-gradient(135deg, #2C7A7B, #319795, #38B2AC)' : 'linear-gradient(135deg, #8B4513, #A0522D)'};
+                border-radius: 50%;
+                box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+              "></div>
+              
+              <!-- Icon emoji -->
+              <div style="
+                position: relative;
+                font-size: 28px;
+                z-index: 10;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+                ${isHolyCity ? 'animation: holyGlow 2s ease-in-out infinite;' : ''}
+              ">
+                ${emoji}
+              </div>
+              
+              ${isHolyCity ? `
+                <!-- Holy city star decorations -->
+                <div style="
+                  position: absolute;
+                  top: -4px;
+                  right: -4px;
+                  font-size: 16px;
+                  animation: starTwinkle 1.5s ease-in-out infinite;
+                ">✨</div>
+              ` : ''}
             </div>
           `,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20]
+          iconSize: [56, 56],
+          iconAnchor: [28, 28]
         })
       }
 
       const labelIcon = (text: string) => {
         const isHolyCity = text === "Mecca" || text === "Medina"
-        const labelColor = isHolyCity ? '#D4AF37' : '#1E40AF'
-        const bgGradient = isHolyCity 
-          ? 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,193,7,0.95))'
-          : 'linear-gradient(135deg, rgba(59,130,246,0.95), rgba(147,197,253,0.95))'
         
         return L.divIcon({
           className: 'custom-label',
@@ -135,24 +172,28 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
             <div style="
               font: bold 14px/1.2 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
               color: white;
-              background: ${bgGradient};
-              padding: 4px 12px;
-              border-radius: 12px;
-              border: 2px solid white;
+              background: ${isHolyCity 
+                ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #FFD700 100%)' 
+                : 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #8B4513 100%)'};
+              padding: 6px 14px;
+              border-radius: 8px;
+              border: 3px solid ${isHolyCity ? '#FFD700' : '#D4AF37'};
               white-space: nowrap;
               pointer-events: none;
               letter-spacing: 0.5px;
               box-shadow: 
-                0 4px 12px rgba(0,0,0,0.3),
-                0 0 20px rgba(255,255,255,0.4),
-                inset 0 1px 2px rgba(255,255,255,0.5);
-              transform: translateY(-8px);
+                0 4px 12px rgba(0, 0, 0, 0.6),
+                0 0 20px ${isHolyCity ? 'rgba(255, 215, 0, 0.5)' : 'rgba(139, 69, 19, 0.3)'},
+                inset 0 1px 2px rgba(255, 255, 255, 0.5),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+              transform: translateY(-12px);
+              text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
             ">
               ${text}
             </div>
           `,
           iconSize: [0, 0],
-          iconAnchor: [0, -24]
+          iconAnchor: [0, -32]
         })
       }
 
