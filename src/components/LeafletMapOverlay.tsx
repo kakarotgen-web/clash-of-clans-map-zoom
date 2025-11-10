@@ -33,24 +33,31 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
       const map = L.map(mapRef.current, { zoomControl: true })
       mapInstanceRef.current = map
 
-      // Add tile layer with vintage/antique style
-      L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+      // Add vibrant colorful tile layer
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 18,
-        opacity: 0.85,
-        attribution: '&copy; OpenStreetMap contributors'
+        opacity: 0.4,
+        attribution: '&copy; Esri'
       }).addTo(map)
 
-      // Fetch and add coastline overlay
+      // Add watercolor overlay for artistic effect
+      L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg', {
+        maxZoom: 16,
+        opacity: 0.6,
+        attribution: '&copy; Stamen Design'
+      }).addTo(map)
+
+      // Fetch and add colorful coastline overlay
       fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_coastline.geojson')
         .then(r => r.json())
         .then(geo => {
           L.geoJSON(geo, {
-            style: { color: '#5b3a29', weight: 1.5, opacity: 0.7 }
+            style: { color: '#2E7D32', weight: 2.5, opacity: 0.8 }
           }).addTo(map)
         })
         .catch(err => console.warn('Coastline data not available:', err))
 
-      // Icon mapping for different cities
+      // Icon mapping with enhanced emojis
       const getCityIcon = (cityName: string) => {
         const iconMap: { [key: string]: string } = {
           "Mecca": "🕋",
@@ -84,23 +91,77 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
         return iconMap[cityName] || "🏙️"
       }
 
-      // Custom icon functions with emojis
+      // Get vibrant colors for different route types
+      const getRouteColor = (index: number) => {
+        const colors = [
+          '#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCF7F', '#A78BFA',
+          '#FB7185', '#38BDF8', '#FBBF24', '#34D399', '#F472B6',
+          '#60A5FA', '#FCD34D', '#F97316', '#14B8A6', '#8B5CF6'
+        ]
+        return colors[index % colors.length]
+      }
+
+      // Enhanced custom icon with glow effects
       const cityIcon = (cityName: string) => {
         const emoji = getCityIcon(cityName)
+        const isHolyCity = cityName === "Mecca" || cityName === "Medina"
+        const glowColor = isHolyCity ? 'rgba(255, 215, 0, 0.9)' : 'rgba(100, 200, 255, 0.7)'
+        
         return L.divIcon({
           className: 'custom-city-icon',
-          html: `<div style="font-size: 28px; text-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 12px rgba(255,255,255,0.6); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${emoji}</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
+          html: `
+            <div style="
+              font-size: 36px;
+              text-shadow: 
+                0 0 20px ${glowColor},
+                0 0 40px ${glowColor},
+                0 2px 12px rgba(0,0,0,0.6);
+              filter: 
+                drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+                drop-shadow(0 0 15px ${glowColor});
+              animation: pulse 2s ease-in-out infinite;
+            ">
+              ${emoji}
+            </div>
+          `,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20]
         })
       }
 
-      const labelIcon = (text: string) => L.divIcon({
-        className: 'custom-label',
-        html: `<div style="font: 13px/1.1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:800; color:#1a1a1a; text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff, 0 0 10px rgba(255,255,255,0.9); white-space:nowrap; pointer-events:none; letter-spacing: 0.3px;">${text}</div>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, -18]
-      })
+      const labelIcon = (text: string) => {
+        const isHolyCity = text === "Mecca" || text === "Medina"
+        const labelColor = isHolyCity ? '#D4AF37' : '#1E40AF'
+        const bgGradient = isHolyCity 
+          ? 'linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,193,7,0.95))'
+          : 'linear-gradient(135deg, rgba(59,130,246,0.95), rgba(147,197,253,0.95))'
+        
+        return L.divIcon({
+          className: 'custom-label',
+          html: `
+            <div style="
+              font: bold 14px/1.2 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              color: white;
+              background: ${bgGradient};
+              padding: 4px 12px;
+              border-radius: 12px;
+              border: 2px solid white;
+              white-space: nowrap;
+              pointer-events: none;
+              letter-spacing: 0.5px;
+              box-shadow: 
+                0 4px 12px rgba(0,0,0,0.3),
+                0 0 20px rgba(255,255,255,0.4),
+                inset 0 1px 2px rgba(255,255,255,0.5);
+              transform: translateY(-8px);
+            ">
+              ${text}
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, -24]
+        })
+      }
 
       // City data
       const cities = [
@@ -174,33 +235,45 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
         [[37, 40], [41, 50]]
       ]
 
-      // Draw railway-style routes
-      routes.forEach(coords => {
-        // Main rail line (darker, solid)
+      // Draw vibrant colorful railway routes
+      routes.forEach((coords, index) => {
+        const routeColor = getRouteColor(index)
+        
+        // Outer glow effect
         L.polyline(coords, {
-          color: '#4a4a4a',
-          weight: 4,
-          opacity: 0.8
+          color: routeColor,
+          weight: 10,
+          opacity: 0.3,
+          className: 'route-glow'
         }).addTo(map)
         
-        // Railway ties (lighter, dashed perpendicular pattern)
+        // Main railway line with gradient effect
         L.polyline(coords, {
-          color: '#8B4513',
+          color: routeColor,
           weight: 6,
-          opacity: 0.6,
-          dashArray: '2,10'
+          opacity: 0.85,
+          className: 'route-main'
         }).addTo(map)
         
-        // Outer rails (parallel lines effect)
+        // Railway ties pattern
         L.polyline(coords, {
-          color: '#2a2a2a',
+          color: '#FFF',
+          weight: 8,
+          opacity: 0.4,
+          dashArray: '3,12',
+          className: 'route-ties'
+        }).addTo(map)
+        
+        // Inner highlight
+        L.polyline(coords, {
+          color: '#FFFFFF',
           weight: 2,
-          opacity: 0.7,
-          dashArray: '1,0'
+          opacity: 0.6,
+          className: 'route-highlight'
         }).addTo(map)
       })
 
-      // Draw city markers with custom icons
+      // Draw city markers with enhanced icons
       const markers: any[] = []
       cities.forEach(city => {
         const jitter = (Math.random() - 0.5) * 0.08
@@ -216,13 +289,27 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
         
         markers.push(marker)
         
-        // Add label on top
+        // Add enhanced label on top
         L.marker([lat, lon], {
           interactive: false,
           icon: labelIcon(city.City),
           zIndexOffset: 1500
         }).addTo(map)
       })
+
+      // Add CSS animations
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+        .leaflet-interactive:hover {
+          filter: brightness(1.2) drop-shadow(0 0 20px currentColor);
+          transition: all 0.3s ease;
+        }
+      `
+      document.head.appendChild(style)
 
       // Fit map to show all markers
       const group = L.featureGroup(markers)
@@ -246,25 +333,29 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
         ref={mapRef}
         className="absolute inset-0 w-full h-full"
         style={{
-          background: '#f5f1e8'
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         }}
       />
       
-      {/* Info Panel */}
-      <div className="absolute top-24 left-8 z-50 bg-gradient-to-br from-amber-50/95 to-yellow-50/95 backdrop-blur-sm border-2 border-amber-700/30 rounded-2xl px-6 py-4 shadow-2xl max-w-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">🚂</span>
-          <h3 className="font-bold text-xl text-amber-900">Hajj Railway Network</h3>
+      {/* Enhanced Info Panel */}
+      <div className="absolute top-24 left-8 z-50 bg-gradient-to-br from-purple-600/95 via-pink-500/95 to-orange-400/95 backdrop-blur-lg border-4 border-white/40 rounded-3xl px-8 py-6 shadow-2xl max-w-md">
+        <div className="flex items-center gap-4 mb-3">
+          <span className="text-5xl animate-bounce">🚂</span>
+          <h3 className="font-black text-2xl text-white drop-shadow-lg">Hajj Railway Network</h3>
         </div>
-        <p className="text-sm text-amber-800 leading-relaxed">
-          Historic pilgrimage railway routes connecting cities to the Holy Cities of <span className="font-bold text-amber-900">Mecca 🕋</span> and <span className="font-bold text-amber-900">Medina 🕌</span>.
+        <p className="text-base text-white/95 leading-relaxed font-medium drop-shadow-md">
+          Vibrant pilgrimage railway routes connecting cities to <span className="font-black text-yellow-300 drop-shadow-lg">Mecca 🕋</span> and <span className="font-black text-yellow-300 drop-shadow-lg">Medina 🕌</span>.
         </p>
+        <div className="mt-4 flex gap-2">
+          <div className="flex-1 h-2 rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400"></div>
+          <div className="flex-1 h-2 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"></div>
+        </div>
       </div>
 
-      {/* Close Button */}
+      {/* Enhanced Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-8 right-24 z-50 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-xl font-bold shadow-2xl border-2 border-red-800/30 transition-all duration-300 hover:scale-105"
+        className="absolute top-8 right-24 z-50 bg-gradient-to-r from-red-600 via-pink-600 to-rose-600 hover:from-red-700 hover:via-pink-700 hover:to-rose-700 text-white px-8 py-4 rounded-2xl font-black text-lg shadow-2xl border-4 border-white/40 transition-all duration-300 hover:scale-110 hover:rotate-2"
       >
         ✕ Close Map
       </button>
