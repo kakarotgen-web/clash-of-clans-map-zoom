@@ -33,18 +33,11 @@ export default function LeafletMapOverlay({ onClose }: LeafletMapOverlayProps) {
       const map = L.map(mapRef.current, { zoomControl: true })
       mapInstanceRef.current = map
 
-      // Add vibrant colorful tile layer
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 18,
-        opacity: 0.4,
-        attribution: '&copy; Esri'
-      }).addTo(map)
-
-      // Add watercolor overlay for artistic effect
-      L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg', {
-        maxZoom: 16,
-        opacity: 0.6,
-        attribution: '&copy; Stamen Design'
+      // Use CartoDB Voyager - vibrant, colorful, free (no API key required)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        opacity: 0.9,
+        attribution: '&copy; OpenStreetMap contributors &copy; CartoDB'
       }).addTo(map)
 
       // Fetch and add colorful coastline overlay
